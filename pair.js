@@ -47,7 +47,7 @@ router.get("/", async (req, res) => {
     if (!phone.isValid()) {
         if (!res.headersSent) {
             return res.status(400).send({
-                code: "Invalid phone number. Please enter your full international number (e.g., 15551234567 for US, 447911123456 for UK, 84987654321 for Vietnam, etc.) without + or spaces.",
+                code: "Invalid phone number. Please enter your full international number (e.g., 2348132990186 for Nig, 15551234567 for US, 447911123456 for UK, 84987654321 for Vietnam, etc.) without + or spaces.",
             });
         }
         return;
