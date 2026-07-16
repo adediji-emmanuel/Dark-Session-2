@@ -86,10 +86,74 @@ router.get("/", async (req, res) => {
 
                 if (connection === "open") {
                     console.log("✅ Connected successfully!");
+                    await delay(5000);
                     console.log("📱 Uploading session to MEGA...");
 
                     try {
                         const credsPath = dirs + "/creds.json";
+                        if (!fs.existsSync(credsPath)) {
+    throw new Error("creds.json not found");
+}
+
+const creds = JSON.parse(
+    fs.readFileSync(credsPath, "utf8")
+);
+
+if (!creds.registered) {
+    console.log("Waiting for final credentials...");
+    await delay(3000);
+    await saveCreds();
+}
+                        const data = fs.readFileSync(credsPath);
+
+const b64data = Buffer.from(data).toString("base64");
+                        const session = await KnightBot.sendMessage(
+    KnightBot.user.id,
+    {
+        text: "DARK-BOT~" + b64data
+    }
+);
+                        const DarkBot_TEXT = `
+
+╔════════════════════◇
+║『 SESSION CONNECTED』
+║ ✨ DARK-BOT 🔷
+║ ✨ DARK-BOT OFFICIAL🔷
+╚════════════════════╝
+
+---
+
+╔════════════════════◇
+║『 YOU'VE CHOSEN Dark-Bot 』
+║ -Set the session ID in Heroku:
+║ - SESSION_ID:
+╚════════════════════╝
+
+╔════════════════════◇
+║ 『••• _V𝗶𝘀𝗶𝘁 𝗙𝗼𝗿_H𝗲𝗹𝗽 •••』
+║❍ 𝐎𝐰𝐧𝐞𝐫: +2348132990186
+║❍ 𝐑𝐞𝐩𝐨: https://github.com/adediji-emmanuel/Dark-Bot
+║❍ 𝐖𝐚𝐆𝗿𝐨𝐮𝐩: https://chat.whatsapp.com/
+║❍ 𝐖𝐚𝐂𝐡𝐚𝐧𝐧𝐞𝐥: https://whatsapp.com/channel/
+║
+║ ☬ ☬ ☬ ☬
+╚═════════════════════╝
+𒂀 Enjoy Dark-Bot
+
+---
+
+Don't Forget To Give Star⭐ To My Repo
+______________________________`;
+
+await KnightBot.sendMessage(
+    KnightBot.user.id,
+    {
+        text: DarkBot_TEXT
+    },
+    {
+        quoted: session
+    }
+);
                         const megaUrl = await upload(
                             credsPath,
                             `creds_${num}_${Date.now()}.json`,
@@ -102,26 +166,34 @@ router.get("/", async (req, res) => {
                                 megaFileId,
                             );
 
-                            const userJid = jidNormalizedUser(
-                                num + "@s.whatsapp.net",
-                            );
-                            await KnightBot.sendMessage(userJid, {
-                                text: `${megaFileId}`,
-                            });
+                           await KnightBot.sendMessage(
+    KnightBot.user.id,
+    {
+        text:
+`📁 MEGA Session Uploaded
+
+${megaUrl}
+
+File ID:
+${megaFileId}`
+    }
+);
                             console.log("📄 MEGA file ID sent successfully");
                         } else {
                             console.log("❌ Failed to upload to MEGA");
                         }
 
                         console.log("🧹 Cleaning up session...");
-                        await delay(1000);
-                        removeFile(dirs);
+                       
                         console.log("✅ Session cleaned up successfully");
                         console.log("🎉 Process completed successfully!");
 
                         console.log("🛑 Shutting down application...");
-                        await delay(2000);
-                        process.exit(0);
+                        await delay(5000);
+
+await KnightBot.ws.close();
+
+removeFile(dirs);
                     } catch (error) {
                         console.error("❌ Error uploading to MEGA:", error);
                         removeFile(dirs);
@@ -148,7 +220,8 @@ router.get("/", async (req, res) => {
                         );
                     } else {
                         console.log("🔁 Connection closed — restarting...");
-                        initiateSession();
+                        await delay(10000);
+return initiateSession();
                     }
                 }
             });
@@ -176,7 +249,9 @@ router.get("/", async (req, res) => {
                 }
             }
 
-            KnightBot.ev.on("creds.update", saveCreds);
+            KnightBot.ev.on("creds.update", async () => {
+    await saveCreds();
+});
         } catch (err) {
             console.error("Error initializing session:", err);
             if (!res.headersSent) {
